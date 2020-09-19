@@ -1,0 +1,6 @@
+.App {
+  text-align: center;
+}
+.map-container div {
+  position: fixed !important;
+}
