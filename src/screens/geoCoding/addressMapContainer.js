@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./geoStyle.css";
-import { emitEventToReducer } from "./geoActions";
+import { emitEventToReducer, getPointData } from "./geoActions";
 import { connect } from "react-redux";
 import AddressMapComponent from "./addressMapComponent";
 
@@ -12,6 +12,9 @@ const mapDispatchToProps = dispatch => {
   return {
     emitEventToReducer: params => {
       dispatch(emitEventToReducer(params));
+    },
+    getPointData: params => {
+      dispatch(getPointData(params));
     }
   };
 };
@@ -23,9 +26,9 @@ const mapDispatchToProps = dispatch => {
 
 const mapStateToProps = state => {
   return {
-    geoReducer: state.geoReducer,
     locationCoordinates: state.geoReducer.locationCoordinates,
-    polygonCoordinates: state.geoReducer.polygonCoordinates
+    polygonCoordinates: state.geoReducer.polygonCoordinates,
+    userAddress: state.geoReducer.userAddress
   };
 };
 

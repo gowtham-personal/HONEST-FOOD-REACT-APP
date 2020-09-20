@@ -5,42 +5,87 @@ export const emitEventToReducer = params => ({
   type: params.type,
   payload: params.payload
 });
+const getForwardGeocodingData = async (params, isPolygon) => {
+  const forwardGeocodingResponse = await getMethod(
+    API_URL_CONSTANTS.FORWARD_GEO_CODING,
+    {
+      "Content-Type": "application/json"
+    },
+    {
+      street: params.street,
+      state: params.state,
+      country: params.country,
+      postalcode: params["postal code"],
+      polygon: isPolygon ? 1 : 0
+    }
+  );
+  return forwardGeocodingResponse;
+};
 
 export const getPolygonData = params => async dispatch => {
   try {
-    const forwardGeocodingResponse = await getMethod(
-      API_URL_CONSTANTS.FORWARD_GEO_CODING,
-      {
-        "Content-Type": "application/json"
-      },
-      {
-        street: params.street,
-        state: params.state,
-        country: params.country,
-        postalcode: params["postal code"],
-        polygon: 1
-      }
+    dispatch(
+      emitEventToReducer({
+        type: "STORE_ADDRESS_DATA",
+        payload: params
+      })
     );
-    console.log("forwardGeocodingResponse", forwardGeocodingResponse);
+    let polygonResponse = await getForwardGeocodingData(params, true);
+    console.log("polygonResponse", polygonResponse);
     if (
-      forwardGeocodingResponse &&
-      forwardGeocodingResponse.data &&
-      forwardGeocodingResponse.data.features
+      polygonResponse &&
+      polygonResponse.data &&
+      polygonResponse.data.features
     ) {
-      let features = forwardGeocodingResponse.data.features;
+      let features = polygonResponse.data.features;
       features.map(feature => {
         console.log("feature", feature);
+
         if (feature.geometry.type == "Polygon") {
+          let polyCord = [];
+          feature.geometry.coordinates[0].map(ll => {
+            polyCord.push({ lat: ll[1], lng: ll[0] });
+          });
+          console.log("polyCord", polyCord);
           dispatch(
             emitEventToReducer({
               type: "FORWARD_GEOCODING_SUCCESS",
-              payload: feature.geometry.coordinates
+              payload: polyCord
             })
           );
         }
       });
-
       params.history.push("/map");
+    }
+  } catch (error) {
+    console.log("error", error);
+    emitEventToReducer({
+      type: "FORWARD_GEOCODING_FAILURE",
+      payload: error.message
+    });
+  }
+};
+
+export const getPointData = params => async dispatch => {
+  try {
+    let pointResponse = await getForwardGeocodingData(params, false);
+    console.log("pointResponse", pointResponse);
+    if (pointResponse && pointResponse.data && pointResponse.data.features) {
+      let pointFeatures = pointResponse.data.features;
+      pointFeatures.map(feature => {
+        console.log("feature", feature);
+        if (feature.geometry.type == "Point") {
+          dispatch(
+            emitEventToReducer({
+              type: "STORE_LAT_LONG",
+              payload: {
+                lat: feature.geometry.coordinates[1],
+                lng: feature.geometry.coordinates[0]
+              }
+            })
+          );
+        }
+      });
     }
   } catch (error) {
     console.log("error", error);

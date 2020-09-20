@@ -68,33 +68,42 @@ const AddressMapComponent = compose(
   withProps({
     googleMapURL: `https://maps.googleapis.com/maps/api/js?key=${CONFIG_CONSTANTS.GOOGLE_API_KEY}&libraries=geometry,drawing,visualization`,
     loadingElement: <div style={{ height: `100%` }} />,
-    containerElement: <div style={{ height: `100%` }} class="map-container" />,
+    containerElement: (
+      <div style={{ height: `100%` }} className="map-container" />
+    ),
     mapElement: <div style={{ height: `100%`, position: "fixed" }} />
   }),
 
   lifecycle({
     componentDidMount(props) {
-      if (navigator.geolocation) {
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        };
-        navigator.geolocation.getCurrentPosition(
-          (position, options) => {
-            console.log("position", this.props);
-            this.props.emitEventToReducer({
-              type: "STORE_LAT_LONG",
-              payload: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              }
-            });
-          },
-          error => {
-            console.log("error", error);
-          }
-        );
+      if (
+        this.props.polygonCoordinates &&
+        this.props.polygonCoordinates.length > 0
+      ) {
+        this.props.getPointData(this.props.userAddress);
+      } else {
+        if (navigator.geolocation) {
+          const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          };
+          navigator.geolocation.getCurrentPosition(
+            (position, options) => {
+              console.log("position", this.props);
+              this.props.emitEventToReducer({
+                type: "STORE_LAT_LONG",
+                payload: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                }
+              });
+            },
+            error => {
+              console.log("error", error);
+            }
+          );
+        }
       }
     }
   }),
@@ -172,13 +181,14 @@ const AddressMapComponent = compose(
           }}
         ></Marker>
 
-        {props.polygonCordinates && props.polygonCordinates.length > 0 && (
+        {props.polygonCoordinates && props.polygonCoordinates.length > 0 && (
           <Polygon
-            path={props.polygonCordinates[0]}
+            path={props.polygonCoordinates}
             options={{
-              fillColor: "red",
-              fillOpacity: 0.7,
-              strokeColor: "red",
+              fillColor: "#000",
+              fillOpacity: 0.4,
+              strokeColor: "#000",
+              strokeOpacity: 1,
               strokeWeight: 1
             }}
           />

@@ -2,6 +2,7 @@ const INITIAL_STATE = {
   locationCoordinates: {},
   addressDetails: {},
   polygonCoordinates: [],
+  userAddress: {},
   errorMessage: undefined
 };
 
@@ -21,6 +22,11 @@ const geoReducer = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         addressDetails: action.payload
+      };
+    case "STORE_ADDRESS_DATA":
+      return {
+        ...state,
+        userAddress: action.payload
       };
     default:
       return state;
